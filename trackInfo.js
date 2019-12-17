@@ -36,9 +36,10 @@ const showInfo = () => {
     case 1: {
       const player = players.pop();
       const playerName = player.name();
+      const stateSymbol = getPlayerState(player);
       const trackInfo = getTrackInfo(player);
       const underline = ''.padEnd(trackInfo.title.replace(/[il\s\W]/g, '').length / 1.4, '─');
-      const infoText = `${trackInfo.title}\n${underline}\n${trackInfo.artist}\n${trackInfo.album}${trackInfo.year ? " (#)".replace('#', trackInfo.year) : ''}`;
+      const infoText = `${stateSymbol} ${trackInfo.title}\n${underline}\n${trackInfo.artist}\n${trackInfo.album}${trackInfo.year ? " (#)".replace('#', trackInfo.year) : ''}`;
       currentApp.displayDialog(infoText, {
         buttons: ['🤘🏼'],
         defaultButton: '🤘🏼',
@@ -51,13 +52,14 @@ const showInfo = () => {
     default: {
       let infoText = [];
       players.forEach(player => {
+        const stateSymbol = getPlayerState(player);
         const trackInfo = getTrackInfo(player);
-        const headerText = `${player.name()} is currently playing:\n`;
+        const headerText = `${stateSymbol} ${player.name()} track:\n`;
         const underline = ''.padEnd(headerText.replace(/[il ]/g, '').length / 1.7, '─');
         infoText.push(headerText, underline, '\n');
         infoText.push(`${trackInfo.title} ∷ ${trackInfo.artist} - ${trackInfo.album}${trackInfo.year ? " (#)".replace('#', trackInfo.year) : ''}\n\n`);
       });
-      infoText.push(`You should really pick ONE player though... 🤣\n\n`);
+      // infoText.push(`You should really pick ONE player though... 🤣\n\n`);
       currentApp.displayDialog(infoText.join(''), {
         buttons: ['🤘🏼✌🏼👌🏼'],
         defaultButton: '🤘🏼✌🏼👌🏼',
@@ -71,12 +73,14 @@ const showInfo = () => {
 const doYoutubeSearch = () => {
   const players = getPlayers();
   if(players.length){
-    const trackInfo = getTrackInfo(players.pop());
-    const expr = encodeURIComponent(`"${trackInfo.artist}" "${trackInfo.title}"`);
-    const url = `https://www.youtube.com/results?search_query=${expr}`;
     const browser = Application('Google Chrome');
-    const newTab = new browser.Tab({ 'url': url });
-    browser.windows[0].tabs.push(newTab);
+    players.forEach(player => {
+      const trackInfo = getTrackInfo(player);
+      const expr = encodeURIComponent(`"${trackInfo.artist}" "${trackInfo.title}"`);
+      const url = `https://www.youtube.com/results?search_query=${expr}`;
+      const newTab = new browser.Tab({ 'url': url });
+      browser.windows[0].tabs.push(newTab);
+    });
     browser.activate();
   }
 };
@@ -89,7 +93,7 @@ const doYoutubeSearch = () => {
 //   .filter(player => player.playerState() === 'playing' || player.playerState() === 1);
 // return players;
 const getPlayers = () => audioPlayers.map(name => Application(name))
-      .filter(app => app.running() && (app.playerState() === 'playing' || app.playerState() === 1));
+      .filter(app => app.running());
 
 const getTrackInfo = (player) => {
   const playerName = player.name();
@@ -112,3 +116,5 @@ const getTrackInfo = (player) => {
   }
   return trackInfo;
 };
+
+const getPlayerState = player => player.playerState() === 'playing' || player.playerState() === 1 ? '▶️':'⏸';
