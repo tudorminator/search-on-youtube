@@ -6,11 +6,12 @@ currentApp.includeStandardAdditions = true;
 const alertIcon = Path('/System/Library/PreferencePanes/Sound.prefPane/Contents/Resources/SoundPref.icns');
 const playerIcons = {
   'iTunes': Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns'),
+  'Music': Path('/System/Applications/Music.app/Contents/Resources/AppIcon.icns'),
   'VOX': Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns')
 };
 const voxIcon = Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns');
 const iTunesIcon = Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns');
-const audioPlayers = ['iTunes', 'VOX'];
+const possiblePlayers = ['Music', 'iTunes', 'VOX'];
 
 function run(argv) {
   if (argv.indexOf('--search') > -1) {
@@ -39,7 +40,7 @@ const showInfo = () => {
       const stateSymbol = getPlayerState(player);
       const trackInfo = getTrackInfo(player);
       const underline = ''.padEnd(trackInfo.title.replace(/[il\s\W]/g, '').length / 1.4, '─');
-      const infoText = `${stateSymbol} ${trackInfo.title}\n${underline}\n${trackInfo.artist}\n${trackInfo.album}${trackInfo.year ? " (#)".replace('#', trackInfo.year) : ''}`;
+      const infoText = `${stateSymbol} ${trackInfo.title}\n${underline}\n${trackInfo.artist}\n${trackInfo.album}${trackInfo.year ? ` (${trackInfo.year})` : ''}`;
       currentApp.displayDialog(infoText, {
         buttons: ['🤘🏼'],
         defaultButton: '🤘🏼',
@@ -92,29 +93,41 @@ const doYoutubeSearch = () => {
 //   .map(name => Application(name))
 //   .filter(player => player.playerState() === 'playing' || player.playerState() === 1);
 // return players;
-const getPlayers = () => audioPlayers.map(name => Application(name))
-      .filter(app => app.running());
+const getPlayers = () => {
+  const audioPlayers = possiblePlayers.filter(appExists)
+  return audioPlayers.map(name => Application(name)).filter(app => app.running());
+}
 
 const getTrackInfo = (player) => {
   const playerName = player.name();
   let trackInfo = {};
-  if (playerName.toLowerCase().includes('itunes')) {
-    const track = player.currentTrack();
-    trackInfo = {
-      'artist': track.artist().trim(),
-      'album': track.album().trim(),
-      'title': track.name().trim(),
-      'year': track.year()
-    };
-  } else {
+  if (playerName.toLowerCase().includes('vox')) {
     // VOX
     trackInfo = {
       'title': player.track().toString().trim(),
       'album': player.album().toString().trim(),
       'artist': player.artist().toString().trim()
     }
+  } else {
+  	// iTunes or Music
+    const track = player.currentTrack();
+    trackInfo = {
+      'artist': track.artist().toString().trim(),
+      'album': track.album().toString().trim(),
+      'title': track.name().toString().trim(),
+      'year': track.year().toString()
+    };
   }
   return trackInfo;
 };
 
 const getPlayerState = player => player.playerState() === 'playing' || player.playerState() === 1 ? '▶️':'⏸';
+
+const appExists = appName => {
+  try {
+    const app = Application(appName);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
