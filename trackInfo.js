@@ -77,7 +77,9 @@ const doYoutubeSearch = () => {
     const browser = Application('Google Chrome');
     players.forEach(player => {
       const trackInfo = getTrackInfo(player);
-      const expr = encodeURIComponent(`"${trackInfo.artist}" "${trackInfo.title}"`);
+      const artist = trackInfo.artist.split(/\s/g).join('+');
+      const title = trackInfo.title.split(/\s/g).join('+');
+      const expr = `"${artist}"+"${title}"`;
       const url = `https://www.youtube.com/results?search_query=${expr}`;
       const newTab = new browser.Tab({ 'url': url });
       browser.windows[0].tabs.push(newTab);
