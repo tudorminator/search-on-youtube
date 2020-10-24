@@ -1,6 +1,9 @@
 # search-on-youtube
 Get the current track info from iTunes or [VOX](https://vox.rocks/) and search Youtube using Google Chrome. Use the scripts to create Quick Actions in Automator.app, then assign them shortcuts in System preferences.
 
+```js
+$ osascript -l JavaScript "/path/to/search-on-youtube/trackInfo.js" --search
+```
 
 Use `--search` param to search Youtube, leave it out to just display song info.
 
