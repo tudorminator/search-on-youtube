@@ -7,11 +7,12 @@ const alertIcon = Path('/System/Library/PreferencePanes/Sound.prefPane/Contents/
 const playerIcons = {
   'iTunes': Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns'),
   'Music': Path('/System/Applications/Music.app/Contents/Resources/AppIcon.icns'),
-  'VOX': Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns')
+  'VOX': Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns'),
+  'Cog': Path('/Applications/mPlayers/Cog.app/Contents/Resources/icon_main.icns'),
 };
-const voxIcon = Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns');
-const iTunesIcon = Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns');
-const possiblePlayers = ['Music', 'iTunes', 'VOX'];
+// const voxIcon = Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns');
+// const iTunesIcon = Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns');
+const possiblePlayers = ['Music', 'iTunes', 'VOX', 'Cog'];
 
 function run(argv) {
   if (argv.indexOf('--search') > -1) {
@@ -39,7 +40,7 @@ const showInfo = () => {
       const playerName = player.name();
       const stateSymbol = getPlayerState(player);
       const trackInfo = getTrackInfo(player);
-      const underline = ''.padEnd(trackInfo.title.replace(/[il\s\W]/g, '').length / 1.4, '─');
+      const underline = ''.padEnd(trackInfo.title.replace(/[il\s\W]/g, '').length / 1.1, '─');
       const infoText = `${stateSymbol} ${trackInfo.title}\n${underline}\n${trackInfo.artist}\n${trackInfo.album}${trackInfo.year ? ` (${trackInfo.year})` : ''}`;
       currentApp.displayDialog(infoText, {
         buttons: ['🤘🏼'],
@@ -101,29 +102,65 @@ const getPlayers = () => {
 }
 
 const getTrackInfo = (player) => {
-  const playerName = player.name();
-  let trackInfo = {};
-  if (playerName.toLowerCase().includes('vox')) {
-    // VOX
-    trackInfo = {
-      'title': player.track().toString().trim(),
-      'album': player.album().toString().trim(),
-      'artist': player.artist().toString().trim()
+  const playerName = player.name().toLowerCase();
+  let trackInfo = {
+    'title': 'N/A',
+    'album': 'N/A',
+    'artist': 'N/A',
+    'year': 'N/A', 
+  };
+  switch (true) {
+    case playerName.includes('vox'): {
+      // VOX
+      trackInfo = {
+        'title': player.track().toString().trim(),
+        'album': player.album().toString().trim(),
+        'artist': player.artist().toString().trim()
+      }
+      break;
     }
-  } else {
-  	// iTunes or Music
-    const track = player.currentTrack();
-    trackInfo = {
-      'artist': track.artist().toString().trim(),
-      'album': track.album().toString().trim(),
-      'title': track.name().toString().trim(),
-      'year': track.year().toString()
-    };
+    case playerName.includes('cog'): {
+      // Cog
+      try {
+        const current = player.currententry;
+        trackInfo = {
+          'title': current.title().toString().trim(),
+          'album': current.album().toString().trim(),
+          'artist': current.artist().toString().trim(),
+          'year': current.year().toString()
+        }
+      } catch(err){
+        console.log(`${player.name()} not playing`)
+      }
+      break;
+    }
+    default: {
+      // iTunes or Music
+      const track = player.currentTrack();
+      trackInfo = {
+        'artist': track.artist().toString().trim(),
+        'album': track.album().toString().trim(),
+        'title': track.name().toString().trim(),
+        'year': track.year().toString()
+      };
+    }
   }
   return trackInfo;
 };
 
-const getPlayerState = player => player.playerState() === 'playing' || player.playerState() === 1 ? '▶️':'⏸';
+const getPlayerState = (player) => {
+  if(player.name().toLowerCase() === 'cog') {
+    try {
+      const current = player.currententry;
+      return '▶️';
+    } catch(err){
+      return '⏸';
+    }
+  }
+  return player.playerState() === 'playing' || player.playerState() === 1
+    ? '▶️'
+    : '⏸';
+}
 
 const appExists = appName => {
   try {
