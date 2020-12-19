@@ -8,7 +8,7 @@ const playerIcons = {
   'iTunes': Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns'),
   'Music': Path('/System/Applications/Music.app/Contents/Resources/AppIcon.icns'),
   'VOX': Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns'),
-  'Cog': Path('/Applications/mPlayers/Cog.app/Contents/Resources/icon_main.icns'),
+  'Cog': Path('/Applications/mPlayers/Cog.app/Contents/Resources/Cog Icon Precomposed.icns'),
 };
 // const voxIcon = Path('/Applications/mPlayers/VOX.app/Contents/Resources/AppIconNew.icns');
 // const iTunesIcon = Path('/Applications/iTunes.app/Contents/Resources/iTunes.icns');
@@ -57,7 +57,7 @@ const showInfo = () => {
         const stateSymbol = getPlayerState(player);
         const trackInfo = getTrackInfo(player);
         const headerText = `${stateSymbol} ${player.name()} track:\n`;
-        const underline = ''.padEnd(headerText.replace(/[il ]/g, '').length / 1.7, '─');
+        const underline = ''.padEnd(headerText.replace(/[il\s\W]/g, '').length / 1.1, '─');
         infoText.push(headerText, underline, '\n');
         infoText.push(`${trackInfo.title} ∷ ${trackInfo.artist} - ${trackInfo.album}${trackInfo.year ? " (#)".replace('#', trackInfo.year) : ''}\n\n`);
       });
